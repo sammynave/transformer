@@ -13,9 +13,15 @@ import {
 fs.readFile('tests/fixtures/simple.json', transformBegin);
 
 function transformBegin(err, data) {
-  var tables = {};
   var resources = JSON.parse(data);
-  tables["orders"] = transformResources(resources.orders);
+  console.log(resources);
+  var tables = seq(
+    resources,
+    compose(
+      map(writeTable)
+    )
+  );
+
   var path = 'tests/fixtures/simple-transformed.json';
 
   fs.writeFile(path, JSON.stringify(tables), function(err) {
@@ -23,26 +29,27 @@ function transformBegin(err, data) {
   });
 }
 
-function transformResources(rs) {
-  var withUUID = seq(rs, map(createUUIDs));
-  var baseTransformed = transformBase(withUUID);
-
-  return baseTransformed;
+function writeTable(x) {
+  return [x[0], transformResources(x[1])];
 }
 
-function transformBase(ob) {
+function transformResources(rs) {
   return seq(
-    ob,
+    rs,
     compose(
+      map(createUUIDs),
       map(convertDates)
     )
   );
 }
 
-function createUUIDs(order) {
+function isObject(x) {
+  return x[1] instanceof Object;
+}
+function createUUIDs(rs) {
   var shasum = crypto.createHash('sha1');
-  shasum.update(JSON.stringify(order));
-  order['uuid'] = shasum.digest('hex');
+  shasum.update(JSON.stringify(rs));
+  rs['uuid'] = shasum.digest('hex');
 
-  return order;
+  return rs;
 }
