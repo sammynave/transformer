@@ -1,18 +1,24 @@
 // import I from 'immutable';
 import fs from  'fs';
 import crypto from 'crypto';
-import { seq, compose, map, toArray } from 'transducers.js';
 import convertDates from './date.js';
+import {
+  seq,
+  compose,
+  map,
+  toArray,
+  filter
+} from 'transducers.js';
 
-fs.readFile('tests/fixtures/simple.json', transform);
+fs.readFile('tests/fixtures/simple.json', transformBegin);
 
-function transform(err, data) {
+function transformBegin(err, data) {
+  var tables = {};
   var resources = JSON.parse(data);
-  var transformed = transformResources(resources.orders);
+  tables["orders"] = transformResources(resources.orders);
   var path = 'tests/fixtures/simple-transformed.json';
-  data = JSON.stringify(transformed)
 
-  fs.writeFile(path, data, function(err) {
+  fs.writeFile(path, JSON.stringify(tables), function(err) {
     console.log('error: %s', err);
   });
 }
